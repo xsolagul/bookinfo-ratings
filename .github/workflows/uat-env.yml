@@ -51,5 +51,5 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: acceptance-test
-        run: curl http://bookinfo.uat.opsta.net/student36/ratings/health | grep "Ratings is Working"
+        run: curl http://bookinfo.uat.opsta.net/student36/ratings/health | grep "Ratings is working"
    
