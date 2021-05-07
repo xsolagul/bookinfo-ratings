@@ -1,14 +1,15 @@
-name: uat-env
+name: deploy-non-prd
 on:
   push:
     branches:
+      - dev
       - master
 jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Set env
+        run: echo "ENV_NAME=$( [ "$GITHUB_REF" == "refs/heads/master" ] && echo 'uat' || echo ${GITHUB_REF##*/} )" >> $GITHUB_ENV
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
@@ -19,11 +20,13 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ghcr.io/xsolagul/bookinfo-ratings:uat
+          tags: ghcr.io/xsolagul/bookinfo-ratings:${{ env.ENV_NAME }}
   deploy:
     needs: build
     runs-on: ubuntu-20.04
     steps:
+      - name: Set env
+        run: echo "ENV_NAME=$( [ "$GITHUB_REF" == "refs/heads/master" ] && echo 'uat' || echo ${GITHUB_REF##*/} )" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v2
       - name: get-credentials
@@ -36,10 +39,10 @@ jobs:
         uses: deliverybot/helm@v1
         with:
           helm: helm3
-          release: bookinfo-uat-ratings
-          namespace: student36-bookinfo-uat
+          release: bookinfo-${{ env.ENV_NAME }}-ratings
+          namespace: student36-bookinfo-${{ env.ENV_NAME }}
           chart: k8s/helm
-          value-files: k8s/helm-values/values-bookinfo-uat-ratings.yaml
+          value-files: k8s/helm-values/values-bookinfo-${{ env.ENV_NAME }}-ratings.yaml
           values: |
             {
               "extraEnv": {
@@ -50,6 +53,7 @@ jobs:
     needs: deploy
     runs-on: ubuntu-20.04
     steps:
+      - name: Set env
+        run: echo "ENV_NAME=$( [ "$GITHUB_REF" == "refs/heads/master" ] && echo 'uat' || echo ${GITHUB_REF##*/} )" >> $GITHUB_ENV
       - name: acceptance-test
-        run: curl http://bookinfo.uat.opsta.net/student36/ratings/health | grep "Ratings is working"
-   
+        run: curl http://bookinfo.${{ env.ENV_NAME }}.opsta.net/student36/ratings/health | grep "Ratings is Working"
