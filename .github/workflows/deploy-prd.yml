@@ -41,4 +41,4 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: acceptance-test
-        run: curl http://bookinfo.${{ env.ENV_NAME }}.opsta.net/student36/ratings/health | grep "Ratings is working"
+        run: curl http://bookinfo.opsta.net/student36/ratings/health | grep "Ratings is working"
